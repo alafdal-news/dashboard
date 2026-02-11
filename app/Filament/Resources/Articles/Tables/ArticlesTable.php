@@ -42,12 +42,18 @@ class ArticlesTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                // 4. Publication DateTime
-                TextColumn::make('date_time_utc')
-                    ->label('Date & Time')
-                    ->dateTime('M d, Y - h:i A')
-                    ->timezone('Asia/Beirut')
+                // 4. Date
+                TextColumn::make('news_date')
+                    ->label('Date')
+                    ->date('M d, Y')
                     ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                TextColumn::make('news_time')
+                    ->label('Time')
+                    ->time('h:i A')
+                    ->sortable()
+                    ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 // 5. Views (Hidden by default to keep interface clean)

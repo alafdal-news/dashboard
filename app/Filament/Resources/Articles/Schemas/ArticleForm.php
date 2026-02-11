@@ -5,8 +5,9 @@ namespace App\Filament\Resources\Articles\Schemas;
 use App\Models\Author;
 use App\Models\Category;
 use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -53,15 +54,17 @@ class ArticleForm
                     })
                     ->dehydrateStateUsing(fn($state) => $state ?? ''),
 
-                DateTimePicker::make('date_time_utc')
-                    ->label('Date & Time')
+                DatePicker::make('news_date')
+                    ->label('Date')
                     ->default(now())
                     ->required()
-                    ->displayFormat('d/m/Y - h:i A')
-                    ->seconds(false)
-                    ->timezone('Asia/Beirut')
-                    ->hidden(fn($record) => $record === null)
-                    ->dehydrated(true),
+                    ->hidden(fn($record) => $record === null),
+
+                TimePicker::make('news_time')
+                    ->label('Time')
+                    ->default(now())
+                    ->required()
+                    ->hidden(fn($record) => $record === null),
 
                 // 1. COVER IMAGE (Main)
                 // Model accessor returns full path for preview, mutator handles save
