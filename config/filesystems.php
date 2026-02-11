@@ -41,7 +41,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => '/home/u856214677/domains/alafdalnews.com/public_html',
-            'url' => 'https://alafdalnews.com',
+            'url' => env('PUBLIC_DISK_URL', 'https://admin.alafdalnews.com'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
