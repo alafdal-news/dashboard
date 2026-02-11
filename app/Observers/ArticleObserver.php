@@ -4,6 +4,8 @@ namespace App\Observers;
 
 use App\Models\Article;
 use App\Models\ArticleImage;
+use App\Services\FirebaseNotificationService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ArticleObserver
@@ -125,10 +127,31 @@ class ArticleObserver
 
     /**
      * Handle the Article "created" event.
+     * Sends push notification if the notification flag is enabled.
      */
     public function created(Article $article): void
     {
-        //
+        // Only send notification for new articles with notification flag enabled
+        if ($article->notification) {
+            try {
+                $notificationService = app(FirebaseNotificationService::class);
+                $notificationService->sendArticleNotification(
+                    $article->news_id,
+                    $article->news_title
+                );
+                
+                Log::info('Push notification dispatched for article', [
+                    'news_id' => $article->news_id,
+                    'title' => $article->news_title,
+                ]);
+            } catch (\Throwable $e) {
+                // Log error but don't fail the article creation
+                Log::error('Failed to send push notification', [
+                    'news_id' => $article->news_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**
