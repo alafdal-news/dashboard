@@ -45,14 +45,14 @@ jobs:
 
             set -euo pipefail
 
-            PHP="/opt/cloudlinux/alt-php83/root/usr/bin/php"
-            COMPOSER="/usr/local/bin/composer"
-            APP_DIR="${{ secrets.DEPLOY_PATH }}"
+            export PHP="/opt/cloudlinux/alt-php83/root/usr/bin/php"
+            export COMPOSER="/usr/local/bin/composer"
+            export APP_DIR="${{ secrets.DEPLOY_PATH }}"
 
             echo "Using PHP:"
-            $PHP -v
+            "$PHP" -v
             echo "Using Composer:"
-            $PHP $COMPOSER -V
+            "$PHP" "$COMPOSER" -V
 
             cd "$APP_DIR"
 
@@ -61,26 +61,26 @@ jobs:
             git reset --hard origin/main
 
             echo "Install prod dependencies (PHP 8.3 CLI)..."
-            $PHP $COMPOSER install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+            "$PHP" "$COMPOSER" install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
             echo "Fix permissions (safe default)..."
             chmod -R 775 storage bootstrap/cache || true
 
             echo "Clear caches safely..."
             # optimize:clear can fail if the app is in a bad state, so don't break deployment on it:
-            $PHP artisan optimize:clear || true
+            "$PHP" artisan optimize:clear || true
 
             # Hard reset the cached provider lists (prevents the Pail-like incident)
             rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php || true
 
             echo "Rebuild caches..."
-            $PHP artisan package:discover --ansi
-            $PHP artisan config:cache
-            $PHP artisan route:cache
-            $PHP artisan view:cache
+            "$PHP" artisan package:discover --ansi
+            "$PHP" artisan config:cache
+            "$PHP" artisan route:cache
+            "$PHP" artisan view:cache
 
             # OPTIONAL - only if you intend to manage schema via migrations:
-            # $PHP artisan migrate --force
+            # "$PHP" artisan migrate --force
 
             echo "Deployment done ✅"
 
