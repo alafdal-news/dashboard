@@ -56,6 +56,9 @@ jobs:
 
             cd "$APP_DIR"
 
+            # Use SSH for Git
+            git remote set-url origin git@github.com:alafdal-news/dashboard.git
+
             echo "Pull latest code..."
             git fetch origin main
             git reset --hard origin/main
