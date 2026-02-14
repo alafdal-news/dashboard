@@ -1,0 +1,725 @@
+openapi: 3.0.3
+info:
+  title: Alafdal News API
+  description: |
+    REST API for the Alafdal News platform.  
+    Serves both the Next.js frontend and the mobile application.  
+    All endpoints are public — no authentication required.
+  version: "1.0"
+  contact:
+    name: Alafdal News Team
+
+servers:
+  - url: https://admin.alafdalnews.com/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Local Development
+
+tags:
+  - name: Home
+    description: Aggregated home page data
+  - name: Articles
+    description: News articles endpoints
+  - name: Categories
+    description: Article categories
+  - name: Search
+    description: Search articles
+  - name: Videos
+    description: Video content
+
+paths:
+  # ──────────────────────────── HOME ────────────────────────────
+  /home:
+    get:
+      tags: [Home]
+      summary: Get home page data
+      description: |
+        Returns aggregated data for the home screen in a single request.  
+        Includes slider articles, breaking news, categories with articles, popular and latest articles.  
+        Response is cached on the server for 5 minutes.
+      operationId: getHome
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/HomeData"
+
+  # ──────────────────────────── ARTICLES ────────────────────────────
+  /articles:
+    get:
+      tags: [Articles]
+      summary: List all articles (paginated)
+      operationId: listArticles
+      parameters:
+        - $ref: "#/components/parameters/PerPage"
+        - $ref: "#/components/parameters/Page"
+        - name: category_id
+          in: query
+          description: Filter by category ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated list of articles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedArticles"
+
+  /articles/slider:
+    get:
+      tags: [Articles]
+      summary: Get slider articles
+      description: Articles flagged for the slider/carousel display.
+      operationId: getSliderArticles
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: List of slider articles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleListResponse"
+
+  /articles/featured:
+    get:
+      tags: [Articles]
+      summary: Get featured articles
+      description: Articles flagged as important/featured.
+      operationId: getFeaturedArticles
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: List of featured articles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleListResponse"
+
+  /articles/latest:
+    get:
+      tags: [Articles]
+      summary: Get latest articles
+      description: Most recently published articles.
+      operationId: getLatestArticles
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: List of latest articles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleListResponse"
+
+  /articles/popular:
+    get:
+      tags: [Articles]
+      summary: Get popular articles
+      description: Articles sorted by highest view count.
+      operationId: getPopularArticles
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: List of popular articles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleListResponse"
+
+  /articles/breaking:
+    get:
+      tags: [Articles]
+      summary: Get breaking news
+      description: Latest important/breaking news articles.
+      operationId: getBreakingNews
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of articles to return
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: List of breaking news articles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleListResponse"
+
+  /articles/{id}:
+    get:
+      tags: [Articles]
+      summary: Get a single article
+      operationId: getArticle
+      parameters:
+        - $ref: "#/components/parameters/ArticleId"
+      responses:
+        "200":
+          description: Article details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Article"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /articles/{id}/related:
+    get:
+      tags: [Articles]
+      summary: Get related articles
+      description: Returns articles in the same category, excluding the given article.
+      operationId: getRelatedArticles
+      parameters:
+        - $ref: "#/components/parameters/ArticleId"
+        - name: limit
+          in: query
+          description: Maximum number of related articles
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: List of related articles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /articles/{id}/view:
+    post:
+      tags: [Articles]
+      summary: Increment view count
+      description: Call this when the user opens/reads an article to track views.
+      operationId: incrementArticleView
+      parameters:
+        - $ref: "#/components/parameters/ArticleId"
+      responses:
+        "200":
+          description: View count incremented
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  views:
+                    type: integer
+                    description: Updated total view count
+                    example: 1234
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────── CATEGORIES ────────────────────────────
+  /categories:
+    get:
+      tags: [Categories]
+      summary: List all categories
+      description: Returns all active categories ordered by ID.
+      operationId: listCategories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Get a single category
+      operationId: getCategory
+      parameters:
+        - $ref: "#/components/parameters/CategoryId"
+      responses:
+        "200":
+          description: Category details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Category"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /categories/{id}/articles:
+    get:
+      tags: [Categories]
+      summary: Get articles by category
+      description: Returns paginated articles belonging to a specific category.
+      operationId: getCategoryArticles
+      parameters:
+        - $ref: "#/components/parameters/CategoryId"
+        - $ref: "#/components/parameters/PerPage"
+        - $ref: "#/components/parameters/Page"
+      responses:
+        "200":
+          description: Category with its paginated articles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  category:
+                    $ref: "#/components/schemas/Category"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Article"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────── SEARCH ────────────────────────────
+  /search:
+    get:
+      tags: [Search]
+      summary: Search articles
+      description: Search articles by title or content. Supports filtering by category.
+      operationId: searchArticles
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query text
+          schema:
+            type: string
+            minLength: 1
+          example: "سياسة"
+        - $ref: "#/components/parameters/PerPage"
+        - $ref: "#/components/parameters/Page"
+        - name: category_id
+          in: query
+          description: Filter results by category ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  query:
+                    type: string
+                    description: The search query that was used
+                    example: "سياسة"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Article"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "400":
+          description: Missing search query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Search query is required"
+                  data:
+                    type: array
+                    items: {}
+                    example: []
+
+  # ──────────────────────────── VIDEOS ────────────────────────────
+  /videos:
+    get:
+      tags: [Videos]
+      summary: List all videos (paginated)
+      operationId: listVideos
+      parameters:
+        - $ref: "#/components/parameters/PerPage"
+        - $ref: "#/components/parameters/Page"
+      responses:
+        "200":
+          description: Paginated list of videos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Video"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+
+  /videos/{id}:
+    get:
+      tags: [Videos]
+      summary: Get a single video
+      operationId: getVideo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Video ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Video details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Video"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+# ════════════════════════════════════════════════════════════════
+# COMPONENTS
+# ════════════════════════════════════════════════════════════════
+components:
+  # ──────────────── Schemas ────────────────
+  schemas:
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique article ID
+          example: 1234
+        title:
+          type: string
+          description: Article title (Arabic)
+          example: "عنوان الخبر"
+        excerpt:
+          type: string
+          description: Auto-generated excerpt (max 30 words, HTML stripped)
+          example: "ملخص قصير للخبر يصل إلى 30 كلمة..."
+        content:
+          type: string
+          description: Full article body (HTML)
+          example: "<p>المحتوى الكامل بصيغة HTML</p>"
+        slug:
+          type: string
+          description: URL-friendly slug derived from the title
+          example: "عنوان-الخبر"
+        image:
+          type: string
+          description: |
+            Cover image path (relative — prepend base URL to get the full URL).
+            If the stored value already contains a full relative path (e.g. `uploads/news/1234/filename.jpg`), it is returned as-is with a leading `/`.
+            If it is just a filename, the path `/uploads/news/{id}/` is prepended.
+            Falls back to `/uploads/news/p5.jpg` when no image exists.
+          example: "/uploads/news/1234/01KHDSBNH39PPRYMAZ3YK7R943.jpg"
+        thumbnail:
+          type: string
+          nullable: true
+          description: Thumbnail image path (relative — prepend base URL)
+          example: "/uploads/news/1234/thumb.jpg"
+        youtube_url:
+          type: string
+          nullable: true
+          description: YouTube video URL (if the article has a video)
+          example: "https://www.youtube.com/watch?v=xxxxx"
+        voiceover_url:
+          type: string
+          nullable: true
+          description: Audio voiceover URL
+          example: "/uploads/voiceover/1234.mp3"
+        views:
+          type: integer
+          description: Total view count
+          example: 5432
+        date:
+          type: string
+          format: date
+          description: Publication date
+          example: "2026-02-14"
+        time:
+          type: string
+          description: "Publication time (HH:mm:ss)"
+          example: "10:30:00"
+        datetime_utc:
+          type: string
+          format: date-time
+          nullable: true
+          description: UTC datetime (ISO 8601)
+          example: "2026-02-14T10:30:00Z"
+        is_important:
+          type: boolean
+          description: Whether the article is marked as breaking/important
+          example: true
+        is_featured:
+          type: boolean
+          description: Whether the article appears in the slider
+          example: false
+        author:
+          type: string
+          nullable: true
+          description: Author name
+          example: "اسم الكاتب"
+        category:
+          $ref: "#/components/schemas/Category"
+        images:
+          type: array
+          description: Gallery images (when loaded)
+          items:
+            $ref: "#/components/schemas/GalleryImage"
+
+    GalleryImage:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Gallery image ID
+          example: 1
+        url:
+          type: string
+          description: |
+            Image path (relative — prepend base URL to get the full URL).
+            Stored paths that already include the directory are returned as-is.
+          example: "/uploads/news/1234/01KHDSBNH39PPRYMAZ3YK7R943.jpg"
+        is_cover:
+          type: boolean
+          description: Whether this is the cover image
+          example: true
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique category ID
+          example: 1
+        name:
+          type: string
+          description: Category name (Arabic)
+          example: "سياسة"
+        slug:
+          type: string
+          description: URL-friendly slug
+          example: "سياسة"
+        is_parent:
+          type: boolean
+          description: Whether this is a parent category
+          example: true
+        parent_id:
+          type: integer
+          nullable: true
+          description: Parent category ID (null for top-level)
+          example: null
+        article_count:
+          type: integer
+          nullable: true
+          description: Number of articles (when counted)
+          example: 150
+
+    Video:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique video ID
+          example: 1
+        title:
+          type: string
+          description: Video title
+          example: "عنوان الفيديو"
+        link:
+          type: string
+          description: Full YouTube URL
+          example: "https://www.youtube.com/watch?v=xxxxx"
+        date:
+          type: string
+          format: date
+          description: Video date
+          example: "2026-02-14"
+        youtube_id:
+          type: string
+          nullable: true
+          description: Extracted YouTube video ID (11 characters)
+          example: "dQw4w9WgXcQ"
+
+    HomeData:
+      type: object
+      properties:
+        slider:
+          type: array
+          description: Up to 20 articles flagged for slider display
+          items:
+            $ref: "#/components/schemas/Article"
+        breaking:
+          type: array
+          description: Up to 5 important/breaking news articles
+          items:
+            $ref: "#/components/schemas/Article"
+        categories:
+          type: array
+          description: Active categories, each with up to 4 latest articles
+          items:
+            type: object
+            properties:
+              category:
+                $ref: "#/components/schemas/Category"
+              articles:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+        popular:
+          type: array
+          description: Top 5 articles by view count
+          items:
+            $ref: "#/components/schemas/Article"
+        latest:
+          type: array
+          description: 10 most recent articles
+          items:
+            $ref: "#/components/schemas/Article"
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 10
+        per_page:
+          type: integer
+          example: 15
+        total:
+          type: integer
+          example: 150
+
+    ArticleListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Article"
+
+    PaginatedArticles:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Article"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+  # ──────────────── Parameters ────────────────
+  parameters:
+    ArticleId:
+      name: id
+      in: path
+      required: true
+      description: Article ID
+      schema:
+        type: integer
+
+    CategoryId:
+      name: id
+      in: path
+      required: true
+      description: Category ID
+      schema:
+        type: integer
+
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        default: 15
+
+    Page:
+      name: page
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        default: 1
+
+    Limit:
+      name: limit
+      in: query
+      description: Maximum number of items to return
+      schema:
+        type: integer
+        default: 10
+
+  # ──────────────── Responses ────────────────
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "No query results for model"

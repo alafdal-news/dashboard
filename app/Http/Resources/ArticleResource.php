@@ -41,7 +41,7 @@ class ArticleResource extends JsonResource
                 return $this->images->map(function ($image) {
                     return [
                         'id' => $image->gallery_id,
-                        'url' => '/uploads/news/' . $this->news_id . '/' . $image->image_name,
+                        'url' => $this->buildImageUrl($image->image_name),
                         'is_cover' => (bool) $image->coverpage,
                     ];
                 });
@@ -49,6 +49,25 @@ class ArticleResource extends JsonResource
         ];
     }
     
+    /**
+     * Build a proper image URL from a stored image name/path.
+     * Handles cases where the value already contains the full relative path.
+     */
+    private function buildImageUrl(?string $imageName): ?string
+    {
+        if (!$imageName) {
+            return null;
+        }
+
+        // If the name already contains a path separator, treat it as a full relative path
+        if (str_contains($imageName, '/')) {
+            return '/' . ltrim($imageName, '/');
+        }
+
+        // Otherwise it's just a filename — prepend the expected directory
+        return '/uploads/news/' . $this->news_id . '/' . $imageName;
+    }
+
     /**
      * Get cover image URL
      */
@@ -58,21 +77,18 @@ class ArticleResource extends JsonResource
         if ($this->relationLoaded('images') && $this->images->count() > 0) {
             $cover = $this->images->first(fn($img) => $img->coverpage == '1');
             if ($cover) {
-                return '/uploads/news/' . $this->news_id . '/' . $cover->image_name;
+                return $this->buildImageUrl($cover->image_name);
             }
             // Fallback to first image
             $first = $this->images->first();
             if ($first) {
-                return '/uploads/news/' . $this->news_id . '/' . $first->image_name;
+                return $this->buildImageUrl($first->image_name);
             }
         }
         
         // Fallback to direct image field
         if ($this->image) {
-            if (str_contains($this->image, '/')) {
-                return '/' . ltrim($this->image, '/');
-            }
-            return '/uploads/news/' . $this->news_id . '/' . $this->image;
+            return $this->buildImageUrl($this->image);
         }
         
         // Default placeholder
