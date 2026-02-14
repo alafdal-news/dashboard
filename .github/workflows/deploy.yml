@@ -46,13 +46,13 @@ jobs:
             set -euo pipefail
 
             export PHP="/opt/cloudlinux/alt-php83/root/usr/bin/php"
-            export COMPOSER="/usr/local/bin/composer"
+            export COMPOSER_BIN="/usr/local/bin/composer"
             export APP_DIR="${{ secrets.DEPLOY_PATH }}"
 
             echo "Using PHP:"
             "$PHP" -v
             echo "Using Composer:"
-            "$PHP" "$COMPOSER" -V
+            "$PHP" "$COMPOSER_BIN" -V
 
             cd "$APP_DIR"
 
@@ -64,7 +64,7 @@ jobs:
             git reset --hard origin/main
 
             echo "Install prod dependencies (PHP 8.3 CLI)..."
-            "$PHP" "$COMPOSER" install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+            "$PHP" "$COMPOSER_BIN" install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
             echo "Fix permissions (safe default)..."
             chmod -R 775 storage bootstrap/cache || true
