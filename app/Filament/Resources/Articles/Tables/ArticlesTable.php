@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Articles\Tables;
 
+use App\Services\FirebaseNotificationService;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
@@ -76,6 +77,45 @@ class ArticlesTable
             ->recordUrl(fn($record) => "https://alafdalnews.com/post.php?post_id={$record->news_id}")
             ->openRecordUrlInNewTab()
             ->recordActions([
+                Action::make('resendNotification')
+                    ->icon('heroicon-o-bell-alert')
+                    ->iconButton()
+                    ->tooltip('Resend Notification')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Resend Push Notification')
+                    ->modalDescription(fn ($record) => "Send a push notification again for: \"{$record->news_title}\"?")
+                    ->modalSubmitActionLabel('Send Notification')
+                    ->action(function ($record) {
+                        try {
+                            $service = app(FirebaseNotificationService::class);
+                            $success = $service->sendArticleNotification(
+                                $record->news_id,
+                                $record->news_title
+                            );
+
+                            if ($success) {
+                                Notification::make()
+                                    ->title('Notification sent successfully!')
+                                    ->success()
+                                    ->duration(3000)
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Failed to send notification')
+                                    ->danger()
+                                    ->duration(3000)
+                                    ->send();
+                            }
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Error sending notification')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->duration(5000)
+                                ->send();
+                        }
+                    }),
                 Action::make('copyLink')
                     ->icon('heroicon-o-clipboard-document')
                     ->iconButton()
