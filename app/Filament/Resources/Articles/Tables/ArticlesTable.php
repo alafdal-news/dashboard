@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Articles\Tables;
 
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
@@ -73,6 +75,20 @@ class ArticlesTable
             ->filters([])
             ->recordUrl(null)
             ->recordActions([
+                Action::make('copyLink')
+                    ->icon('heroicon-o-clipboard-document')
+                    ->iconButton()
+                    ->tooltip('Copy Link')
+                    ->color('info')
+                    ->action(function ($record, $livewire) {
+                        $url = "https://alafdalnews.com/post.php?post_id={$record->news_id}";
+                        $livewire->js("navigator.clipboard.writeText('{$url}')");
+                        Notification::make()
+                            ->title('Link copied to clipboard!')
+                            ->success()
+                            ->duration(1200)
+                            ->send();
+                    }),
                 EditAction::make()
                     ->icon('heroicon-s-pencil-square')
                     ->iconButton()
