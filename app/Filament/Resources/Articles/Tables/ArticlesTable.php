@@ -73,7 +73,8 @@ class ArticlesTable
             ])
             ->defaultSort('news_id', 'desc')
             ->filters([])
-            ->recordUrl(null)
+            ->recordUrl(fn($record) => "https://alafdalnews.com/post.php?post_id={$record->news_id}")
+            ->openRecordUrlInNewTab()
             ->recordActions([
                 Action::make('copyLink')
                     ->icon('heroicon-o-clipboard-document')
