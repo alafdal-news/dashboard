@@ -14,7 +14,7 @@ class CategoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->generateSlug(),
@@ -22,6 +22,15 @@ class CategoryResource extends JsonResource
             'parent_id' => $this->parent_id,
             'article_count' => $this->whenCounted('articles'),
         ];
+
+        // Include children when they have been eager-loaded
+        if ($this->relationLoaded('children')) {
+            $data['children'] = CategoryResource::collection(
+                $this->children->where('active', '1')->sortBy('id')->values()
+            );
+        }
+
+        return $data;
     }
     
     /**

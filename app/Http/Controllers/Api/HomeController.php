@@ -147,6 +147,7 @@ class HomeController extends Controller
             $result[] = [
                 'name'         => $section['name'],
                 'slug'         => $section['slug'],
+                'parent_id'    => $section['parent_id'],
                 'category_ids' => $section['category_ids'],
                 'layout'       => $section['layout'],
                 'articles'     => ArticleResource::collection($articles)->resolve(),
