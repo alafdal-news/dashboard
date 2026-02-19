@@ -37,6 +37,7 @@ class Article extends Model
         'embedding',
         'user_id',
         'date_time_utc',
+        'add_source',
     ];
 
     // --- 2. DATA CASTING (Fixing Types) ---

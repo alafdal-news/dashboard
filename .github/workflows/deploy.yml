@@ -82,8 +82,8 @@ jobs:
             "$PHP" artisan route:cache
             "$PHP" artisan view:cache
 
-            # OPTIONAL - only if you intend to manage schema via migrations:
-            # "$PHP" artisan migrate --force
+            echo "Run database migrations..."
+            "$PHP" artisan migrate --force
 
             echo "Deployment done ✅"
 

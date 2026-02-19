@@ -171,6 +171,10 @@ class ArticleForm
                     ->default(0)
                     ->dehydrated(true),
 
+                Hidden::make('add_source')
+                    ->default('new')
+                    ->dehydrated(true),
+
             ])
             ->dense();
     }
