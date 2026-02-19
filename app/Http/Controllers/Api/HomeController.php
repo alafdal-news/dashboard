@@ -91,8 +91,8 @@ class HomeController extends Controller
     private function getSliderArticles(): array
     {
         $articles = Article::with(['category', 'images'])
-            ->where('active', true)
-            ->where('show_slider', true)
+            ->where('active', '1')
+            ->where('show_slider', '1')
             ->orderBy('news_id', 'desc')
             ->limit(20)
             ->get();
@@ -105,8 +105,8 @@ class HomeController extends Controller
     private function getBreakingNews(): array
     {
         $articles = Article::with(['category'])
-            ->where('active', true)
-            ->where('important', true)
+            ->where('active', '1')
+            ->where('important', '1')
             ->orderBy('news_id', 'desc')
             ->limit(25)
             ->get();
@@ -119,8 +119,8 @@ class HomeController extends Controller
     private function getUrgentArticles(): array
     {
         $articles = Article::with(['category'])
-            ->where('active', true)
-            ->where('important', true)
+            ->where('active', '1')
+            ->where('important', '1')
             ->orderBy('news_id', 'desc')
             ->limit(7)
             ->get();
@@ -136,7 +136,7 @@ class HomeController extends Controller
 
         foreach (self::SECTIONS as $section) {
             $articles = Article::with(['category', 'images'])
-                ->where('active', true)
+                ->where('active', '1')
                 ->whereIn('id_cat', $section['category_ids'])
                 ->orderBy('news_id', 'desc')
                 ->limit($section['limit'])
@@ -161,7 +161,7 @@ class HomeController extends Controller
     private function getPopularArticles(): array
     {
         $articles = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->where('news_date', '>=', now()->subDays(7)->toDateString())
             ->orderBy('views', 'desc')
             ->limit(5)
@@ -169,7 +169,7 @@ class HomeController extends Controller
 
         if ($articles->count() < 5) {
             $articles = Article::with(['category', 'images'])
-                ->where('active', true)
+                ->where('active', '1')
                 ->where('news_date', '>=', now()->subDays(30)->toDateString())
                 ->orderBy('views', 'desc')
                 ->limit(5)
@@ -184,7 +184,7 @@ class HomeController extends Controller
     private function getLatestArticles(): array
     {
         $articles = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->orderBy('news_id', 'desc')
             ->limit(10)
             ->get();

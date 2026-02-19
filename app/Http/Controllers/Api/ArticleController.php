@@ -20,7 +20,7 @@ class ArticleController extends Controller
         $categoryId = $request->get('category_id');
         
         $query = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->orderBy('news_id', 'desc');
         
         if ($categoryId) {
@@ -49,8 +49,8 @@ class ArticleController extends Controller
         $limit = $request->get('limit', 20);
         
         $articles = Article::with(['category', 'images'])
-            ->where('active', true)
-            ->where('show_slider', true)
+            ->where('active', '1')
+            ->where('show_slider', '1')
             ->orderBy('news_id', 'desc')
             ->limit($limit)
             ->get();
@@ -69,8 +69,8 @@ class ArticleController extends Controller
         $limit = $request->get('limit', 10);
         
         $articles = Article::with(['category', 'images'])
-            ->where('active', true)
-            ->where('important', true)
+            ->where('active', '1')
+            ->where('important', '1')
             ->orderBy('news_id', 'desc')
             ->limit($limit)
             ->get();
@@ -89,7 +89,7 @@ class ArticleController extends Controller
         $limit = $request->get('limit', 10);
         
         $articles = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->orderBy('news_id', 'desc')
             ->limit($limit)
             ->get();
@@ -108,7 +108,7 @@ class ArticleController extends Controller
         $limit = $request->get('limit', 10);
         
         $articles = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->where('news_date', '>=', now()->subDays(7)->toDateString())
             ->orderBy('views', 'desc')
             ->limit($limit)
@@ -117,7 +117,7 @@ class ArticleController extends Controller
         // Fallback: if fewer results than requested, extend to 30 days
         if ($articles->count() < $limit) {
             $articles = Article::with(['category', 'images'])
-                ->where('active', true)
+                ->where('active', '1')
                 ->where('news_date', '>=', now()->subDays(30)->toDateString())
                 ->orderBy('views', 'desc')
                 ->limit($limit)
@@ -138,8 +138,8 @@ class ArticleController extends Controller
         $limit = $request->get('limit', 5);
         
         $articles = Article::with(['category'])
-            ->where('active', true)
-            ->where('important', true)
+            ->where('active', '1')
+            ->where('important', '1')
             ->orderBy('news_id', 'desc')
             ->limit($limit)
             ->get();
@@ -156,7 +156,7 @@ class ArticleController extends Controller
     public function show(int $id): JsonResponse
     {
         $article = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->findOrFail($id);
         
         return response()->json([
@@ -175,7 +175,7 @@ class ArticleController extends Controller
         $article = Article::findOrFail($id);
         
         $related = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->where('id_cat', $article->id_cat)
             ->where('news_id', '!=', $id)
             ->orderBy('news_id', 'desc')

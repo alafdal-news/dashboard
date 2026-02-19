@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Category extends Model
 {
@@ -21,9 +22,20 @@ class Category extends Model
     ];
 
     protected $casts = [
-        'active' => 'boolean', // Maps enum('active', 'inactive') or similar
+        // NOTE: active is enum('0','1') in the legacy DB.
+        // Do NOT use boolean cast — it causes MySQL enum index comparison bugs.
+        // Use explicit Attribute accessor below instead.
         'is_parent' => 'boolean',
     ];
+
+    // Handle legacy enum('0','1') column safely
+    protected function active(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value === '1',
+            set: fn($value) => is_bool($value) ? ($value ? '1' : '0') : $value,
+        );
+    }
 
     // 2. RELATIONSHIPS
 

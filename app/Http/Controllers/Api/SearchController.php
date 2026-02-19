@@ -28,7 +28,7 @@ class SearchController extends Controller
         }
         
         $articlesQuery = Article::with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->where(function ($q) use ($query) {
                 $q->where('news_title', 'LIKE', "%{$query}%")
                   ->orWhere('news_desc', 'LIKE', "%{$query}%");

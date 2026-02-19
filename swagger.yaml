@@ -81,7 +81,7 @@ paths:
     get:
       tags: [Articles]
       summary: Get slider articles
-      description: Articles flagged for the slider/carousel display.
+      description: Articles flagged for the slider/carousel display (show_slider='1').
       operationId: getSliderArticles
       parameters:
         - $ref: "#/components/parameters/Limit"
@@ -145,7 +145,7 @@ paths:
     get:
       tags: [Articles]
       summary: Get breaking news
-      description: Latest important/breaking news articles.
+      description: Latest important/breaking news articles (important='1').
       operationId: getBreakingNews
       parameters:
         - name: limit
@@ -601,12 +601,12 @@ components:
       properties:
         slider:
           type: array
-          description: Up to 20 articles flagged for slider display
+          description: Up to 20 articles flagged for slider display (show_slider='1')
           items:
             $ref: "#/components/schemas/Article"
         breaking:
           type: array
-          description: Up to 25 important/breaking news articles for the ticker
+          description: Up to 25 important/breaking news articles for the ticker (important='1')
           items:
             $ref: "#/components/schemas/Article"
         urgent:

@@ -42,16 +42,52 @@ class Article extends Model
 
     // --- 2. DATA CASTING (Fixing Types) ---
     protected $casts = [
-        'active' => 'boolean',     // Converts enum('0', '1') to true/false
-        'important' => 'boolean',
+        // NOTE: active, important, show_slider, notification are enum('0','1')
+        // in the legacy DB. We use custom Attribute accessors below instead of
+        // boolean casts, because boolean casts send integer 1/0 to MySQL which
+        // MySQL compares against the enum INDEX (not the value), breaking queries.
         'views' => 'integer',      // Fixes the legacy varchar issue
-        'notification' => 'boolean',
-        'show_slider' => 'boolean',
         'date_time_utc' => 'datetime', // Main datetime - stored as UTC in DB, displayed in user's timezone
         // 'news_date' => 'date',
         // 'addDate' => 'date',
         // 'updateDate' => 'date',
     ];
+
+    // --- ENUM BOOLEAN ACCESSORS ---
+    // These handle the legacy enum('0','1') columns safely,
+    // converting to/from PHP booleans without the MySQL enum index bug.
+
+    protected function active(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value === '1',
+            set: fn($value) => is_bool($value) ? ($value ? '1' : '0') : $value,
+        );
+    }
+
+    protected function important(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value === '1',
+            set: fn($value) => is_bool($value) ? ($value ? '1' : '0') : $value,
+        );
+    }
+
+    protected function showSlider(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value === '1',
+            set: fn($value) => is_bool($value) ? ($value ? '1' : '0') : $value,
+        );
+    }
+
+    protected function notification(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value === '1',
+            set: fn($value) => is_bool($value) ? ($value ? '1' : '0') : $value,
+        );
+    }
 
     // --- 3. ACCESSORS & MUTATORS (The "Clean Code" Layer) ---
 

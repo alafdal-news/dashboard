@@ -16,7 +16,7 @@ class CategoryController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::where('active', true)
+        $categories = Category::where('active', '1')
             ->orderBy('id')
             ->get();
         
@@ -31,7 +31,7 @@ class CategoryController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $category = Category::where('active', true)
+        $category = Category::where('active', '1')
             ->findOrFail($id);
         
         return response()->json([
@@ -47,11 +47,11 @@ class CategoryController extends Controller
     {
         $perPage = $request->get('per_page', 15);
         
-        $category = Category::where('active', true)->findOrFail($id);
+        $category = Category::where('active', '1')->findOrFail($id);
         
         $articles = $category->articles()
             ->with(['category', 'images'])
-            ->where('active', true)
+            ->where('active', '1')
             ->orderBy('news_id', 'desc')
             ->paginate($perPage);
         
