@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Article;
 use App\Models\ArticleImage;
 use App\Services\FirebaseNotificationService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -131,6 +132,9 @@ class ArticleObserver
      */
     public function created(Article $article): void
     {
+        // Clear home page cache so new articles appear immediately
+        Cache::forget('home_page_data');
+
         // Only send notification for new articles with notification flag enabled
         if ($article->notification) {
             try {
@@ -159,7 +163,8 @@ class ArticleObserver
      */
     public function updated(Article $article): void
     {
-        //
+        // Clear home page cache so updated articles appear immediately
+        Cache::forget('home_page_data');
     }
 
     /**
@@ -167,7 +172,8 @@ class ArticleObserver
      */
     public function deleted(Article $article): void
     {
-        //
+        // Clear home page cache so deleted articles are removed immediately
+        Cache::forget('home_page_data');
     }
 
     /**

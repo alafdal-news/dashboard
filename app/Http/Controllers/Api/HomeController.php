@@ -18,8 +18,8 @@ class HomeController extends Controller
      */
     public function index(): JsonResponse
     {
-        // Cache for 5 minutes for performance
-        $data = Cache::remember('home_page_data', 300, function () {
+        // Cache for 1 minute for fresher news
+        $data = Cache::remember('home_page_data', 60, function () {
             return [
                 'slider' => $this->getSliderArticles(),
                 'breaking' => $this->getBreakingNews(),
@@ -94,9 +94,20 @@ class HomeController extends Controller
     {
         $articles = Article::with(['category', 'images'])
             ->where('active', true)
+            ->where('news_date', '>=', now()->subDays(7)->toDateString())
             ->orderBy('views', 'desc')
             ->limit(5)
             ->get();
+
+        // Fallback: if fewer than 5 articles in the last 7 days, extend to 30 days
+        if ($articles->count() < 5) {
+            $articles = Article::with(['category', 'images'])
+                ->where('active', true)
+                ->where('news_date', '>=', now()->subDays(30)->toDateString())
+                ->orderBy('views', 'desc')
+                ->limit(5)
+                ->get();
+        }
         
         return ArticleResource::collection($articles)->resolve();
     }

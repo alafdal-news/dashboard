@@ -109,9 +109,20 @@ class ArticleController extends Controller
         
         $articles = Article::with(['category', 'images'])
             ->where('active', true)
+            ->where('news_date', '>=', now()->subDays(7)->toDateString())
             ->orderBy('views', 'desc')
             ->limit($limit)
             ->get();
+
+        // Fallback: if fewer results than requested, extend to 30 days
+        if ($articles->count() < $limit) {
+            $articles = Article::with(['category', 'images'])
+                ->where('active', true)
+                ->where('news_date', '>=', now()->subDays(30)->toDateString())
+                ->orderBy('views', 'desc')
+                ->limit($limit)
+                ->get();
+        }
         
         return response()->json([
             'success' => true,
