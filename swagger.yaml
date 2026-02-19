@@ -35,8 +35,11 @@ paths:
       summary: Get home page data
       description: |
         Returns aggregated data for the home screen in a single request.  
-        Includes slider articles, breaking news, categories with articles, popular and latest articles.  
-        Response is cached on the server for 5 minutes.
+        Includes slider articles, breaking news ticker, urgent sidebar,
+        grouped category sections (matching the legacy homepage layout),
+        popular and latest articles.  
+        Response is cached on the server for 60 seconds and invalidated
+        when articles are created, updated or deleted.
       operationId: getHome
       responses:
         "200":
@@ -150,7 +153,7 @@ paths:
           description: Maximum number of articles to return
           schema:
             type: integer
-            default: 5
+            default: 25
       responses:
         "200":
           description: List of breaking news articles
@@ -603,29 +606,64 @@ components:
             $ref: "#/components/schemas/Article"
         breaking:
           type: array
-          description: Up to 5 important/breaking news articles
+          description: Up to 25 important/breaking news articles for the ticker
           items:
             $ref: "#/components/schemas/Article"
-        categories:
+        urgent:
           type: array
-          description: Active categories, each with up to 4 latest articles
+          description: Up to 7 important articles for the urgent sidebar (displayed beside the slider)
           items:
-            type: object
-            properties:
-              category:
-                $ref: "#/components/schemas/Category"
-              articles:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Article"
+            $ref: "#/components/schemas/Article"
+        sections:
+          type: array
+          description: |
+            Grouped category sections matching the legacy homepage layout.
+            Each section aggregates one or more database categories:
+              - سياسة (politics): categories 1, 2, 12 → 4 articles
+              - مقالات خاصة (special-articles): categories 22, 24, 28 → 4 articles
+              - مجتمع (society): categories 6, 14, 15, 16, 17 → 4 articles
+              - أمن وقضاء (security): category 13 → 4 articles
+              - فن وثقافة (culture): category 18 → 3 articles
+              - أخبار رياضية (sports): category 8 → 3 articles
+          items:
+            $ref: "#/components/schemas/HomeSection"
         popular:
           type: array
-          description: Top 5 articles by view count
+          description: Top 5 articles by view count from the last 7 days (falls back to 30 days)
           items:
             $ref: "#/components/schemas/Article"
         latest:
           type: array
           description: 10 most recent articles
+          items:
+            $ref: "#/components/schemas/Article"
+
+    HomeSection:
+      type: object
+      description: A grouped category section for the homepage
+      properties:
+        name:
+          type: string
+          description: Arabic display name for the section
+          example: "سياسة"
+        slug:
+          type: string
+          description: URL-friendly identifier used by the frontend to select a layout
+          example: "politics"
+        category_ids:
+          type: array
+          description: Database category IDs included in this section
+          items:
+            type: integer
+          example: [1, 2, 12]
+        layout:
+          type: string
+          description: Layout hint for the frontend
+          enum: [politics, articles, society, security, culture, sports]
+          example: "politics"
+        articles:
+          type: array
+          description: Latest articles from the grouped categories
           items:
             $ref: "#/components/schemas/Article"
 
