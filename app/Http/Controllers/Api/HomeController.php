@@ -47,13 +47,13 @@ class HomeController extends Controller
         return ArticleResource::collection($articles)->resolve();
     }
     
-    private function getBreakingNews(): array
+    private function getBreakingNews(int $limit = 15): array
     {
         $articles = Article::with(['category'])
             ->where('active', true)
             ->where('important', true)
             ->orderBy('news_id', 'desc')
-            ->limit(5)
+            ->limit($limit)
             ->get();
         
         return ArticleResource::collection($articles)->resolve();
