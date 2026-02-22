@@ -34,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->spa()
 
             # Theme customization
+            ->font('IBM Plex Sans Arabic')
             ->colors([
                 'primary' => "#931e0e",
                 'gray' => Color::Slate,
