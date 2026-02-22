@@ -40,8 +40,8 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => env('PUBLIC_DISK_ROOT', '/home/u856214677/domains/admin.alafdalnews.com/public_html/public'),
-            'url' => env('PUBLIC_DISK_URL', 'https://admin.alafdalnews.com'),
+            'root' => '/home/u856214677/domains/admin.alafdalnews.com/public_html/public',
+            'url' => 'https://admin.alafdalnews.com',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
