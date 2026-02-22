@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\ArticleImage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ArticleImageObserver
@@ -14,6 +15,11 @@ class ArticleImageObserver
         $rawImageName = $gallery->getAttributes()['image_name'] ?? null;
         
         if ($gallery->isDirty('image_name') && $rawImageName) {
+            Log::info('[ArticleImageObserver] Processing gallery image', [
+                'gallery_id' => $gallery->gallery_id,
+                'news_id' => $gallery->news_id,
+                'raw_image_name' => $rawImageName,
+            ]);
             $this->processGalleryImage($gallery, $rawImageName);
         }
     }
@@ -27,6 +33,9 @@ class ArticleImageObserver
         
         // Safety: Ensure we have a parent news_id
         if (!$gallery->news_id) {
+            Log::warning('[ArticleImageObserver] No news_id set, skipping', [
+                'gallery_id' => $gallery->gallery_id,
+            ]);
             return;
         }
         
@@ -43,6 +52,11 @@ class ArticleImageObserver
 
         // If it's just a filename (no path), it's already processed
         if (!str_contains($imagePath, '/')) {
+            Log::info('[ArticleImageObserver] Bare filename, already processed', [
+                'gallery_id' => $gallery->gallery_id,
+                'news_id' => $gallery->news_id,
+                'image' => $imagePath,
+            ]);
             return;
         }
 
@@ -54,6 +68,13 @@ class ArticleImageObserver
         $thumbName = pathinfo($fileName, PATHINFO_FILENAME) . "_thumb.jpg";
         $thumbPath = $thumbDir . $thumbName;
 
+        Log::info('[ArticleImageObserver] Moving gallery image from temp', [
+            'gallery_id' => $gallery->gallery_id,
+            'news_id' => $gallery->news_id,
+            'from' => $imagePath,
+            'to' => $newPath,
+        ]);
+
         // Create directories
         if (!$disk->exists($newDir)) $disk->makeDirectory($newDir);
         if (!$disk->exists($thumbDir)) $disk->makeDirectory($thumbDir);
@@ -62,8 +83,16 @@ class ArticleImageObserver
         if ($disk->exists($imagePath)) {
             $disk->move($imagePath, $newPath);
 
-            // Generate thumbnail
-            $this->createThumbnail($disk->path($newPath), $disk->path($thumbPath));
+            // Generate thumbnail (non-critical)
+            try {
+                $this->createThumbnail($disk->path($newPath), $disk->path($thumbPath));
+            } catch (\Throwable $e) {
+                Log::warning('[ArticleImageObserver] Thumbnail creation failed', [
+                    'gallery_id' => $gallery->gallery_id,
+                    'error' => $e->getMessage(),
+                ]);
+                $thumbName = '';
+            }
 
             // Update model with just the filename (legacy format)
             $gallery->setRawAttributes(array_merge(
@@ -74,6 +103,18 @@ class ArticleImageObserver
                 ]
             ));
             $gallery->saveQuietly();
+            
+            Log::info('[ArticleImageObserver] Gallery image processed', [
+                'gallery_id' => $gallery->gallery_id,
+                'filename' => $fileName,
+            ]);
+        } else {
+            Log::error('[ArticleImageObserver] Source image NOT FOUND on disk!', [
+                'gallery_id' => $gallery->gallery_id,
+                'news_id' => $gallery->news_id,
+                'imagePath' => $imagePath,
+                'disk_root' => $disk->path(''),
+            ]);
         }
     }
 

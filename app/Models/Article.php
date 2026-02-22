@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Support\Facades\Storage;
 
 class Article extends Model
 {
@@ -94,8 +93,8 @@ class Article extends Model
     /**
      * Image accessor/mutator: Converts between filename (DB) and full path (App)
      * 
-     * GET: "filename.jpg" → "uploads/news/{id}/filename.jpg"
-     * SET: "uploads/news/temp/filename.jpg" → stores "uploads/news/temp/filename.jpg" (observer handles the rest)
+     * GET: "filename.jpg" → "uploads/news/{id}/filename.jpg" (deterministic, no I/O)
+     * SET: "uploads/news/temp/filename.jpg" → stores as-is (observer moves to final path)
      *      "uploads/news/{id}/filename.jpg" → stores "filename.jpg" (already processed)
      */
     protected function image(): Attribute
@@ -104,17 +103,14 @@ class Article extends Model
             get: function ($value) {
                 if (!$value) return null;
                 
-                // If it's already a full path, return as-is
+                // If it's already a full path (temp or final), return as-is
                 if (str_contains($value, '/')) {
                     return $value;
                 }
                 
-                // Convert filename to full path for existing articles
+                // Convert bare filename to full path (no disk I/O needed)
                 if ($this->news_id) {
-                    $fullPath = "uploads/news/{$this->news_id}/{$value}";
-                    if (Storage::disk('public')->exists($fullPath)) {
-                        return $fullPath;
-                    }
+                    return "uploads/news/{$this->news_id}/{$value}";
                 }
                 
                 return $value;

@@ -19,6 +19,11 @@ class ArticleObserver
         
         // 1. Handle Cover Image (news_tbl)
         if ($article->isDirty('image') && $rawImage) {
+            Log::info('[ArticleObserver] Processing image for article', [
+                'news_id' => $article->news_id,
+                'raw_image' => $rawImage,
+            ]);
+            
             $this->processImage($article, $rawImage);
 
             // Sync Cover to Gallery (Legacy Requirement: Cover is also in gallery with coverpage=1)
@@ -40,6 +45,12 @@ class ArticleObserver
             $galleryEntry->image_name = basename($processedImage);
             $galleryEntry->thumb_name = $processedThumb;
             $galleryEntry->save();
+            
+            Log::info('[ArticleObserver] Gallery entry synced', [
+                'news_id' => $article->news_id,
+                'gallery_id' => $galleryEntry->gallery_id,
+                'image_name' => basename($processedImage),
+            ]);
         }
     }
 
@@ -58,11 +69,19 @@ class ArticleObserver
                 ['image' => $fileName]
             ));
             $article->saveQuietly();
+            Log::info('[ArticleObserver] Image already in correct folder', [
+                'news_id' => $article->news_id,
+                'filename' => $fileName,
+            ]);
             return;
         }
 
         // If it's just a filename (no path), it's already processed
         if (!str_contains($imagePath, '/')) {
+            Log::info('[ArticleObserver] Image is bare filename, skipping', [
+                'news_id' => $article->news_id,
+                'image' => $imagePath,
+            ]);
             return;
         }
 
@@ -74,6 +93,13 @@ class ArticleObserver
         $thumbName = pathinfo($fileName, PATHINFO_FILENAME) . "_thumb.jpg";
         $thumbPath = $thumbDir . $thumbName;
 
+        Log::info('[ArticleObserver] Moving image from temp', [
+            'news_id' => $article->news_id,
+            'from' => $imagePath,
+            'to' => $newPath,
+            'disk_root' => $disk->path(''),
+        ]);
+
         // Create directories
         if (!$disk->exists($newDir)) $disk->makeDirectory($newDir);
         if (!$disk->exists($thumbDir)) $disk->makeDirectory($thumbDir);
@@ -82,8 +108,16 @@ class ArticleObserver
         if ($disk->exists($imagePath)) {
             $disk->move($imagePath, $newPath);
 
-            // Generate thumbnail
-            $this->createThumbnail($disk->path($newPath), $disk->path($thumbPath), 150, 150);
+            // Generate thumbnail (non-critical — don't fail if it errors)
+            try {
+                $this->createThumbnail($disk->path($newPath), $disk->path($thumbPath), 150, 150);
+            } catch (\Throwable $e) {
+                Log::warning('[ArticleObserver] Thumbnail creation failed', [
+                    'news_id' => $article->news_id,
+                    'error' => $e->getMessage(),
+                ]);
+                $thumbName = '';
+            }
 
             // Update model with just the filename (legacy format)
             $article->setRawAttributes(array_merge(
@@ -94,6 +128,20 @@ class ArticleObserver
                 ]
             ));
             $article->saveQuietly();
+            
+            Log::info('[ArticleObserver] Image processed successfully', [
+                'news_id' => $article->news_id,
+                'filename' => $fileName,
+                'final_path' => $newPath,
+            ]);
+        } else {
+            Log::error('[ArticleObserver] Source image NOT FOUND on disk!', [
+                'news_id' => $article->news_id,
+                'imagePath' => $imagePath,
+                'disk_root' => $disk->path(''),
+                'full_path' => $disk->path($imagePath),
+                'exists_check' => file_exists($disk->path($imagePath)),
+            ]);
         }
     }
 
