@@ -25,32 +25,6 @@ class ArticleObserver
             ]);
             
             $this->processImage($article, $rawImage);
-
-            // Sync Cover to Gallery (Legacy Requirement: Cover is also in gallery with coverpage=1)
-            $galleryEntry = ArticleImage::where('news_id', $article->news_id)
-                ->where('coverpage', '1')
-                ->first();
-
-            if (!$galleryEntry) {
-                $galleryEntry = new ArticleImage();
-                $galleryEntry->news_id = $article->news_id;
-                $galleryEntry->coverpage = '1';
-                $galleryEntry->active = '1';
-            }
-
-            // Get the processed filename (after observer runs)
-            $processedImage = $article->getAttributes()['image'];
-            $processedThumb = $article->getAttributes()['thumbnail_image'] ?? '';
-            
-            $galleryEntry->image_name = basename($processedImage);
-            $galleryEntry->thumb_name = $processedThumb;
-            $galleryEntry->save();
-            
-            Log::info('[ArticleObserver] Gallery entry synced', [
-                'news_id' => $article->news_id,
-                'gallery_id' => $galleryEntry->gallery_id,
-                'image_name' => basename($processedImage),
-            ]);
         }
     }
 
