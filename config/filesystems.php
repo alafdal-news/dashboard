@@ -40,7 +40,7 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => '/home/u856214677/domains/admin.alafdalnews.com/public_html/public',
+            'root' => '/home/u856214677/domains/admin.alafdalnews.com/public_html/app/public/uploads',
             'url' => 'https://admin.alafdalnews.com',
             'visibility' => 'public',
             'throw' => false,
