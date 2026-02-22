@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\SitemapController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\HomeController;
 use Illuminate\Support\Facades\Route;
@@ -50,5 +51,11 @@ Route::prefix('v1')->group(function () {
     Route::prefix('videos')->group(function () {
         Route::get('/', [VideoController::class, 'index']);
         Route::get('/{id}', [VideoController::class, 'show']);
+    });
+
+    // Sitemap (used by Next.js to generate sitemap.xml)
+    Route::prefix('sitemap')->group(function () {
+        Route::get('/count', [SitemapController::class, 'count']);
+        Route::get('/articles/{page}', [SitemapController::class, 'articles']);
     });
 });
