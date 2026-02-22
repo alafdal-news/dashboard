@@ -79,8 +79,8 @@ class ArticleForm
 
                 // 2. GALLERY (Multiple Images)
                 // ArticleImage model accessor/mutator handles path conversion
-                Repeater::make('images')
-                    ->relationship('images')
+                Repeater::make('galleryImages')
+                    ->relationship('galleryImages')
                     ->label('Gallery')
                     ->schema([
                         FileUpload::make('image_name')

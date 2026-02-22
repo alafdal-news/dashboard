@@ -173,6 +173,12 @@ class Article extends Model
         return $this->hasMany(ArticleImage::class, 'news_id');
     }
 
+    // Gallery images only (excludes the cover image entry)
+    public function galleryImages()
+    {
+        return $this->hasMany(ArticleImage::class, 'news_id')->where('coverpage', '0');
+    }
+
     // --- 5. HELPER METHODS ---
     
     /**
