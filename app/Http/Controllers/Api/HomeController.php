@@ -37,7 +37,8 @@ class HomeController extends Controller
         [
             'name'         => 'مجتمع',
             'slug'         => 'society',
-            'category_ids' => [6, 14, 15, 16, 17],
+            'parent_id'    => 32,
+            'category_ids' => [6, 15, 16, 17, 27],
             'limit'        => 5,
             'layout'       => 'society',
         ],
