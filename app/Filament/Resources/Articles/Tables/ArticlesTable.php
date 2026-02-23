@@ -74,7 +74,7 @@ class ArticlesTable
             ])
             ->defaultSort('news_id', 'desc')
             ->filters([])
-            ->recordUrl(fn($record) => "https://alafdalnews.com/post.php?post_id={$record->news_id}")
+            ->recordUrl(fn($record) => "https://alafdalnews.com/article/{$record->news_id}")
             ->openRecordUrlInNewTab()
             ->recordActions([
                 Action::make('resendNotification')
@@ -122,7 +122,7 @@ class ArticlesTable
                     ->tooltip('Copy Link')
                     ->color('info')
                     ->action(function ($record, $livewire) {
-                        $url = "https://alafdalnews.com/post.php?post_id={$record->news_id}";
+                        $url = "https://alafdalnews.com/article/{$record->news_id}";
                         $livewire->js("navigator.clipboard.writeText('{$url}')");
                         Notification::make()
                             ->title('Link copied to clipboard!')
