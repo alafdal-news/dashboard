@@ -2,9 +2,9 @@ name: CI + Deploy (admin)
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "staging" ]
   push:
-    branches: [ "main" ]
+    branches: [ "main", "staging" ]
 
 jobs:
   ci:
@@ -24,14 +24,15 @@ jobs:
       # - run: composer install
       # - run: php artisan test
 
-  deploy:
-    # deploy ONLY on push to main (not on PR)
-    if: github.event_name == 'push'
+  # ─── Production deploy (main branch) ───────────────────────────────
+  deploy-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [ ci ]
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
-      - name: Deploy via SSH
+      - name: Deploy to production via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
@@ -49,6 +50,7 @@ jobs:
             export COMPOSER_BIN="/usr/local/bin/composer"
             export APP_DIR="${{ secrets.DEPLOY_PATH }}"
 
+            echo "=== PRODUCTION DEPLOY ==="
             echo "Using PHP:"
             "$PHP" -v
             echo "Using Composer:"
@@ -70,10 +72,8 @@ jobs:
             chmod -R 775 storage bootstrap/cache || true
 
             echo "Clear caches safely..."
-            # optimize:clear can fail if the app is in a bad state, so don't break deployment on it:
             "$PHP" artisan optimize:clear || true
 
-            # Hard reset the cached provider lists (prevents the Pail-like incident)
             rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php || true
 
             echo "Rebuild caches..."
@@ -85,6 +85,69 @@ jobs:
             echo "Run database migrations..."
             "$PHP" artisan migrate --force
 
-            echo "Deployment done ✅"
+            echo "Production deployment done ✅"
+
+  # ─── Staging deploy (staging branch) ────────────────────────────────
+  deploy-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: [ ci ]
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Deploy to staging via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          port: ${{ secrets.HOSTINGER_PORT }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          script: |
+            LOCKFILE="/tmp/admin_staging_deploy.lock"
+            exec 9>"$LOCKFILE"
+            flock -n 9 || { echo "Another staging deploy is running. Exiting."; exit 1; }
+
+            set -euo pipefail
+
+            export PHP="/opt/cloudlinux/alt-php83/root/usr/bin/php"
+            export COMPOSER_BIN="/usr/local/bin/composer"
+            export APP_DIR="${{ secrets.STAGING_DEPLOY_PATH }}"
+
+            echo "=== STAGING DEPLOY ==="
+            echo "Using PHP:"
+            "$PHP" -v
+            echo "Using Composer:"
+            "$PHP" "$COMPOSER_BIN" -V
+
+            cd "$APP_DIR"
+
+            # Use SSH for Git
+            git remote set-url origin git@github.com:alafdal-news/dashboard.git
+
+            echo "Pull latest code..."
+            git fetch origin staging
+            git reset --hard origin/staging
+
+            echo "Install dependencies (PHP 8.3 CLI)..."
+            "$PHP" "$COMPOSER_BIN" install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+            echo "Fix permissions (safe default)..."
+            chmod -R 775 storage bootstrap/cache || true
+
+            echo "Clear caches safely..."
+            "$PHP" artisan optimize:clear || true
+
+            rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php || true
+
+            echo "Rebuild caches..."
+            "$PHP" artisan package:discover --ansi
+            "$PHP" artisan config:cache
+            "$PHP" artisan route:cache
+            "$PHP" artisan view:cache
+
+            echo "Run database migrations..."
+            "$PHP" artisan migrate --force
+
+            echo "Staging deployment done ✅"
 
 
