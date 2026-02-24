@@ -59,11 +59,11 @@ class ArticlesTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
-                // 5. Views (Hidden by default to keep interface clean)
+                // 5. Views (Visible by default)
                 TextColumn::make('views')
                     ->numeric()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('news_id')
                     ->label('ID')
