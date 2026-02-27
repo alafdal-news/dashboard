@@ -119,54 +119,54 @@ class AdminPanelProvider extends PanelProvider
 
             /*
              * Sidebar text white — only for NON-active items.
-             * Uses :not(.fi-sidebar-item-active) so there is no conflict.
+             * Filament's active class is "fi-active", NOT "fi-sidebar-item-active".
              */
             aside.fi-sidebar .fi-sidebar-header,
             aside.fi-sidebar .fi-sidebar-header *,
             aside.fi-sidebar .fi-sidebar-group-label,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) a,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) a *,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) button,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) button * {
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) a,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) a *,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) button,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) button * {
                 color: rgba(255,255,255,0.85) !important;
             }
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) svg {
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) svg {
                 color: rgba(255,255,255,0.7) !important;
                 stroke: rgba(255,255,255,0.7) !important;
             }
 
             /* Hover on non-active items */
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) a:hover,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) button:hover {
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) a:hover,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) button:hover {
                 background-color: rgba(255,255,255,0.12) !important;
                 border-radius: 0.5rem !important;
             }
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) a:hover,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) a:hover *,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) button:hover,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) button:hover * {
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) a:hover,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) a:hover *,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) button:hover,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) button:hover * {
                 color: #ffffff !important;
             }
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) a:hover svg,
-            aside.fi-sidebar .fi-sidebar-item:not(.fi-sidebar-item-active) button:hover svg {
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) a:hover svg,
+            aside.fi-sidebar .fi-sidebar-item:not(.fi-active) button:hover svg {
                 color: #ffffff !important;
                 stroke: #ffffff !important;
             }
 
             /* Active sidebar item — white pill, blue text/icons */
-            aside.fi-sidebar .fi-sidebar-item-active > a,
-            aside.fi-sidebar .fi-sidebar-item-active > button {
+            aside.fi-sidebar .fi-sidebar-item.fi-active > a,
+            aside.fi-sidebar .fi-sidebar-item.fi-active > button {
                 background: rgba(255,255,255,0.94) !important;
                 border-radius: 0.5rem !important;
             }
-            aside.fi-sidebar .fi-sidebar-item-active > a,
-            aside.fi-sidebar .fi-sidebar-item-active > a *,
-            aside.fi-sidebar .fi-sidebar-item-active > button,
-            aside.fi-sidebar .fi-sidebar-item-active > button * {
+            aside.fi-sidebar .fi-sidebar-item.fi-active > a,
+            aside.fi-sidebar .fi-sidebar-item.fi-active > a *,
+            aside.fi-sidebar .fi-sidebar-item.fi-active > button,
+            aside.fi-sidebar .fi-sidebar-item.fi-active > button * {
                 color: #0732b2 !important;
             }
-            aside.fi-sidebar .fi-sidebar-item-active > a svg,
-            aside.fi-sidebar .fi-sidebar-item-active > button svg {
+            aside.fi-sidebar .fi-sidebar-item.fi-active > a svg,
+            aside.fi-sidebar .fi-sidebar-item.fi-active > button svg {
                 color: #0732b2 !important;
                 stroke: #0732b2 !important;
                 fill: none !important;
