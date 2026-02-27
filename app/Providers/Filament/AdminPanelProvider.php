@@ -137,36 +137,42 @@ class AdminPanelProvider extends PanelProvider
                 stroke: rgba(255,255,255,0.7) !important;
             }
 
-            /* Hover on nav items */
+            /* Hover on nav items — bg ONLY on the <a>/<button>, not children */
             aside.fi-sidebar li a:hover,
-            aside.fi-sidebar li button:hover,
+            aside.fi-sidebar li button:hover {
+                background-color: rgba(255,255,255,0.12) !important;
+                border-radius: 0.5rem !important;
+            }
+            aside.fi-sidebar li a:hover,
             aside.fi-sidebar li a:hover *,
+            aside.fi-sidebar li button:hover,
             aside.fi-sidebar li button:hover * {
                 color: #ffffff !important;
-                background-color: rgba(255,255,255,0.12) !important;
             }
             aside.fi-sidebar li a:hover svg,
             aside.fi-sidebar li button:hover svg {
                 stroke: #ffffff !important;
-                background-color: transparent !important;
             }
 
-            /* Active sidebar item — white pill */
+            /* Active sidebar item — white pill, blue text */
             aside.fi-sidebar .fi-sidebar-item-active > a,
             aside.fi-sidebar .fi-sidebar-item-active > button,
             aside.fi-sidebar [data-active-item] > a {
                 background: rgba(255,255,255,0.92) !important;
                 border-radius: 0.5rem !important;
             }
+            aside.fi-sidebar .fi-sidebar-item-active > a,
             aside.fi-sidebar .fi-sidebar-item-active > a *,
+            aside.fi-sidebar .fi-sidebar-item-active > button,
             aside.fi-sidebar .fi-sidebar-item-active > button *,
+            aside.fi-sidebar [data-active-item] > a,
             aside.fi-sidebar [data-active-item] > a * {
-                color: #811619 !important;
+                color: #0732b2 !important;
             }
             aside.fi-sidebar .fi-sidebar-item-active > a svg,
             aside.fi-sidebar .fi-sidebar-item-active > button svg,
             aside.fi-sidebar [data-active-item] > a svg {
-                stroke: #811619 !important;
+                stroke: #0732b2 !important;
             }
 
             /* Sidebar group labels */
