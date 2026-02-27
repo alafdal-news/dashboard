@@ -22,7 +22,7 @@ class QuickLinks extends Widget
         $links = [];
 
         $resources = [
-            'Articles' => ['resource' => ArticleResource::class, 'icon' => 'heroicon-o-newspaper'],
+            'News' => ['resource' => ArticleResource::class, 'icon' => 'heroicon-o-newspaper'],
             'Authors' => ['resource' => AuthorResource::class, 'icon' => 'heroicon-o-user-group'],
             'Categories' => ['resource' => CategoryResource::class, 'icon' => 'heroicon-o-tag'],
             'Users' => ['resource' => UserResource::class, 'icon' => 'heroicon-o-users'],
