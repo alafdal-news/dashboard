@@ -1,6 +1,6 @@
 <x-filament-widgets::widget>
     <x-filament::section>
-        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             @foreach ($this->getLinks() as $link)
             <a
                 href="{{ $link['url'] }}"
