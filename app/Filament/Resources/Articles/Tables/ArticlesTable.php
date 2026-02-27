@@ -123,7 +123,8 @@ class ArticlesTable
                     ->color('info')
                     ->action(function ($record, $livewire) {
                         $url = "https://alafdalnews.com/article/{$record->news_id}";
-                        $livewire->js("navigator.clipboard.writeText('{$url}')");
+                        $title = str_replace(["'", "\n", "\r"], ["\\'", '', ''], $record->news_title);
+                        $livewire->js("navigator.clipboard.writeText('{$title}\\n{$url}')");
                         Notification::make()
                             ->title('Link copied to clipboard!')
                             ->success()
