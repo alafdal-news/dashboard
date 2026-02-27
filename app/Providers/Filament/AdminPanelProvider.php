@@ -118,22 +118,20 @@ class AdminPanelProvider extends PanelProvider
             }
 
             /*
-             * Force ALL text/icons inside the sidebar to white.
-             * Filament uses deeply nested spans, SVGs, and custom-property colors
-             * so we blanket-override with high specificity + !important.
+             * Force ALL text/icons inside the sidebar to white — using :where()
+             * so this has ZERO specificity and active/hover rules can override.
              */
-            aside.fi-sidebar,
-            aside.fi-sidebar *,
-            aside.fi-sidebar a,
-            aside.fi-sidebar button,
-            aside.fi-sidebar span,
-            aside.fi-sidebar p,
-            aside.fi-sidebar svg {
+            aside.fi-sidebar :where(*),
+            aside.fi-sidebar :where(a),
+            aside.fi-sidebar :where(button),
+            aside.fi-sidebar :where(span),
+            aside.fi-sidebar :where(p) {
                 color: rgba(255,255,255,0.85) !important;
             }
 
             /* SVG icons should inherit via fill/stroke too */
-            aside.fi-sidebar svg {
+            aside.fi-sidebar :where(svg) {
+                color: rgba(255,255,255,0.7) !important;
                 stroke: rgba(255,255,255,0.7) !important;
             }
 
@@ -144,34 +142,32 @@ class AdminPanelProvider extends PanelProvider
                 border-radius: 0.5rem !important;
             }
             aside.fi-sidebar li a:hover,
-            aside.fi-sidebar li a:hover *,
+            aside.fi-sidebar li a:hover span,
             aside.fi-sidebar li button:hover,
-            aside.fi-sidebar li button:hover * {
+            aside.fi-sidebar li button:hover span {
                 color: #ffffff !important;
             }
             aside.fi-sidebar li a:hover svg,
             aside.fi-sidebar li button:hover svg {
+                color: #ffffff !important;
                 stroke: #ffffff !important;
             }
 
             /* Active sidebar item — white pill, blue text */
             aside.fi-sidebar .fi-sidebar-item-active > a,
-            aside.fi-sidebar .fi-sidebar-item-active > button,
-            aside.fi-sidebar [data-active-item] > a {
-                background: rgba(255,255,255,0.92) !important;
+            aside.fi-sidebar .fi-sidebar-item-active > button {
+                background: rgba(255,255,255,0.94) !important;
                 border-radius: 0.5rem !important;
             }
             aside.fi-sidebar .fi-sidebar-item-active > a,
-            aside.fi-sidebar .fi-sidebar-item-active > a *,
+            aside.fi-sidebar .fi-sidebar-item-active > a span,
             aside.fi-sidebar .fi-sidebar-item-active > button,
-            aside.fi-sidebar .fi-sidebar-item-active > button *,
-            aside.fi-sidebar [data-active-item] > a,
-            aside.fi-sidebar [data-active-item] > a * {
+            aside.fi-sidebar .fi-sidebar-item-active > button span {
                 color: #0732b2 !important;
             }
             aside.fi-sidebar .fi-sidebar-item-active > a svg,
-            aside.fi-sidebar .fi-sidebar-item-active > button svg,
-            aside.fi-sidebar [data-active-item] > a svg {
+            aside.fi-sidebar .fi-sidebar-item-active > button svg {
+                color: #0732b2 !important;
                 stroke: #0732b2 !important;
             }
 
@@ -189,30 +185,78 @@ class AdminPanelProvider extends PanelProvider
                 color: rgba(255,255,255,0.7) !important;
             }
 
-            /* ─── Topbar (header) ─── */
+            /* ─── Topbar (header bar only) ─── */
             .fi-topbar {
                 background: linear-gradient(to left, #0732b2, #1a006b) !important;
                 border-bottom: none !important;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.12);
             }
-            .fi-topbar,
-            .fi-topbar *,
-            .fi-topbar nav {
+            .fi-topbar > nav,
+            .fi-topbar > nav > * {
                 background-color: transparent !important;
             }
-            .fi-topbar nav,
-            .fi-topbar a,
-            .fi-topbar button,
-            .fi-topbar span,
-            .fi-topbar svg {
+            /* White text only for items directly inside the topbar nav */
+            .fi-topbar > nav a,
+            .fi-topbar > nav button,
+            .fi-topbar > nav span,
+            .fi-topbar > nav svg,
+            .fi-topbar > nav > * a,
+            .fi-topbar > nav > * button,
+            .fi-topbar > nav > * span,
+            .fi-topbar > nav > * svg,
+            .fi-topbar > nav > * > * a,
+            .fi-topbar > nav > * > * button,
+            .fi-topbar > nav > * > * span,
+            .fi-topbar > nav > * > * svg {
                 color: rgba(255,255,255,0.9) !important;
             }
-            .fi-topbar svg {
+            .fi-topbar > nav svg,
+            .fi-topbar > nav > * svg,
+            .fi-topbar > nav > * > * svg {
                 stroke: rgba(255,255,255,0.9) !important;
             }
-            .fi-topbar a:hover,
-            .fi-topbar button:hover {
-                color: #ffffff !important;
+
+            /* ─── User menu dropdown (restore normal colors) ─── */
+            .fi-dropdown-panel,
+            .fi-dropdown-panel *,
+            .fi-modal,
+            .fi-modal * {
+                color: inherit !important;
+                stroke: inherit !important;
+            }
+            .fi-dropdown-panel {
+                background: #ffffff !important;
+                border: 1px solid #e5e7eb !important;
+                border-radius: 0.75rem !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+            }
+            .fi-dropdown-panel a,
+            .fi-dropdown-panel button {
+                color: #374151 !important;
+            }
+            .fi-dropdown-panel svg {
+                color: #6b7280 !important;
+                stroke: #6b7280 !important;
+            }
+            .fi-dropdown-panel a:hover,
+            .fi-dropdown-panel button:hover {
+                background-color: #f3f4f6 !important;
+                color: #0732b2 !important;
+            }
+            .fi-dropdown-panel a:hover svg,
+            .fi-dropdown-panel button:hover svg {
+                color: #0732b2 !important;
+                stroke: #0732b2 !important;
+            }
+            /* Dropdown header (user name/email) */
+            .fi-dropdown-header {
+                border-bottom: 1px solid #e5e7eb !important;
+            }
+            .fi-dropdown-header p {
+                color: #111827 !important;
+            }
+            .fi-dropdown-header p + p {
+                color: #6b7280 !important;
             }
 
             /* ─── Login page ─── */
