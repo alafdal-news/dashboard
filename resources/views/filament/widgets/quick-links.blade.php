@@ -1,6 +1,6 @@
 <x-filament-widgets::widget>
     <x-filament::section>
-        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
             @foreach ($this->getLinks() as $link)
             <a
                 href="{{ $link['url'] }}"
