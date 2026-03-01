@@ -40,21 +40,16 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => '/home/u856214677/domains/admin.alafdalnews.com/public_html/app/public',
-            'url' => 'https://admin.alafdalnews.com',
+            'root' => env('FILESYSTEM_PUBLIC_ROOT', storage_path('app/public')),
+            'url' => env('FILESYSTEM_PUBLIC_URL', env('APP_URL') . '/storage'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],
 
-        // 'public' => [
-        //     'driver' => 'local',
-        //     'root' => storage_path('app/public'),
-        //     'url' => env('APP_URL').'/storage',
-        //     'visibility' => 'public',
-        //     'throw' => false,
-        //     'report' => false,
-        // ],
+        // Production override (set in .env):
+        // FILESYSTEM_PUBLIC_ROOT=/home/u856214677/domains/admin.alafdalnews.com/public_html/app/public
+        // FILESYSTEM_PUBLIC_URL=https://admin.alafdalnews.com
 
         's3' => [
             'driver' => 's3',

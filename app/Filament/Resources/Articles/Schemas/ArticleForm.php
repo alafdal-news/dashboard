@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Articles\Schemas;
 
 use App\Models\Author;
 use App\Models\Category;
+use App\Services\ImageService;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -66,19 +67,21 @@ class ArticleForm
                     ->required()
                     ->hidden(fn($record) => $record === null),
 
-                // 1. COVER IMAGE (Main)
-                // Model accessor returns full path for preview, mutator handles save
+                // 1. COVER IMAGE
                 FileUpload::make('image')
                     ->label('Cover Image')
                     ->image()
                     ->disk('public')
                     ->columnSpanFull()
                     ->directory('uploads/news/temp')
-                    ->visibility('public'),
+                    ->visibility('public')
+                    // Expand legacy bare filenames so Filament can locate the file on disk
+                    ->formatStateUsing(fn ($state, $record) => $record
+                        ? ImageService::resolvePath($record->news_id, $state)
+                        : $state
+                    ),
 
-
-                // 2. GALLERY (Multiple Images)
-                // ArticleImage model accessor/mutator handles path conversion
+                // 2. GALLERY
                 Repeater::make('galleryImages')
                     ->relationship('galleryImages')
                     ->label('Gallery')
@@ -89,19 +92,24 @@ class ArticleForm
                             ->disk('public')
                             ->directory('uploads/news/temp')
                             ->visibility('public')
-                            ->required(),
+                            ->required()
+                            // Expand legacy bare filenames for preview
+                            ->formatStateUsing(fn ($state, $record) => $record
+                                ? ImageService::resolvePath($record->news_id, $state)
+                                : $state
+                            ),
 
                         Hidden::make('thumb_name')
                             ->default('')
-                            ->dehydrateStateUsing(fn($state) => $state ?? ''),
+                            ->dehydrateStateUsing(fn ($state) => $state ?? ''),
 
                         Hidden::make('active')
                             ->default('1')
-                            ->dehydrateStateUsing(fn($state) => '1'),
+                            ->dehydrateStateUsing(fn ($state) => '1'),
 
                         Hidden::make('coverpage')
                             ->default('0')
-                            ->dehydrateStateUsing(fn($state) => '0'),
+                            ->dehydrateStateUsing(fn ($state) => '0'),
                     ])
                     ->grid(2)
                     ->addActionLabel('Add Image')

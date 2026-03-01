@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,7 +25,7 @@ class ArticleResource extends JsonResource
             'content' => $this->news_desc,
             'slug' => $this->generateSlug(),
             'image' => $coverImage,
-            'thumbnail' => $this->thumbnail_image,
+            'thumbnail' => ImageService::thumbUrl($this->news_id, $this->thumbnail_image),
             'youtube_url' => $this->youtube_url ?: null,
             'voiceover_url' => $this->voiceover_url ?: null,
             'views' => (int) $this->views,
@@ -38,60 +39,32 @@ class ArticleResource extends JsonResource
                 return new CategoryResource($this->category);
             }),
             'images' => $this->whenLoaded('images', function () {
-                return $this->images->map(function ($image) {
-                    return [
-                        'id' => $image->gallery_id,
-                        'url' => $this->buildImageUrl($image->image_name),
-                        'is_cover' => (bool) $image->coverpage,
-                    ];
-                });
+                return $this->images->map(fn ($image) => [
+                    'id' => $image->gallery_id,
+                    'url' => ImageService::toUrl($this->news_id, $image->image_name),
+                    'is_cover' => (bool) $image->coverpage,
+                ]);
             }),
         ];
     }
     
     /**
-     * Build a proper image URL from a stored image name/path.
-     * Handles cases where the value already contains the full relative path.
-     */
-    private function buildImageUrl(?string $imageName): ?string
-    {
-        if (!$imageName) {
-            return null;
-        }
-
-        // If the name already contains a path separator, treat it as a full relative path
-        if (str_contains($imageName, '/')) {
-            return '/' . ltrim($imageName, '/');
-        }
-
-        // Otherwise it's just a filename — prepend the expected directory
-        return '/uploads/news/' . $this->news_id . '/' . $imageName;
-    }
-
-    /**
-     * Get cover image URL
+     * Get the cover image URL.
+     *
+     * Priority: article.image → first gallery image → placeholder.
      */
     private function getCoverImage(): ?string
     {
-        // First check for image in news_gallery with coverpage = 1
-        if ($this->relationLoaded('images') && $this->images->count() > 0) {
-            $cover = $this->images->first(fn($img) => $img->coverpage == '1');
-            if ($cover) {
-                return $this->buildImageUrl($cover->image_name);
-            }
-            // Fallback to first image
-            $first = $this->images->first();
-            if ($first) {
-                return $this->buildImageUrl($first->image_name);
-            }
-        }
-        
-        // Fallback to direct image field
+        // Primary: the article's dedicated cover image
         if ($this->image) {
-            return $this->buildImageUrl($this->image);
+            return ImageService::toUrl($this->news_id, $this->image);
         }
-        
-        // Default placeholder
+
+        // Fallback: first gallery image (covers legacy data without a direct cover)
+        if ($this->relationLoaded('images') && $this->images->isNotEmpty()) {
+            return ImageService::toUrl($this->news_id, $this->images->first()->image_name);
+        }
+
         return '/uploads/news/p5.jpg';
     }
     

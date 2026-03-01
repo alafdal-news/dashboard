@@ -88,46 +88,10 @@ class Article extends Model
         );
     }
 
-    // --- 3. ACCESSORS & MUTATORS (The "Clean Code" Layer) ---
-
-    /**
-     * Image accessor/mutator: Converts between filename (DB) and full path (App)
-     * 
-     * GET: "filename.jpg" → "uploads/news/{id}/filename.jpg" (deterministic, no I/O)
-     * SET: "uploads/news/temp/filename.jpg" → stores as-is (observer moves to final path)
-     *      "uploads/news/{id}/filename.jpg" → stores "filename.jpg" (already processed)
-     */
-    protected function image(): Attribute
-    {
-        return Attribute::make(
-            get: function ($value) {
-                if (!$value) return null;
-                
-                // If it's already a full path (temp or final), return as-is
-                if (str_contains($value, '/')) {
-                    return $value;
-                }
-                
-                // Convert bare filename to full path (no disk I/O needed)
-                if ($this->news_id) {
-                    return "uploads/news/{$this->news_id}/{$value}";
-                }
-                
-                return $value;
-            },
-            set: function ($value) {
-                if (!$value) return null;
-                
-                // If it's in the article's folder, extract just filename for DB
-                if ($this->news_id && str_contains($value, "uploads/news/{$this->news_id}/")) {
-                    return basename($value);
-                }
-                
-                // For temp uploads or new files, store full path (observer will process)
-                return $value;
-            },
-        );
-    }
+    // --- 3. ACCESSORS & MUTATORS ---
+    // NOTE: Image fields (image, thumbnail_image) have NO accessors/mutators.
+    // All path logic is centralized in App\Services\ImageService.
+    // The DB stores full relative paths (e.g. "uploads/news/123/file.jpg").
 
     // Title: Maps 'title' <-> 'news_title'
     protected function title(): Attribute
@@ -180,20 +144,5 @@ class Article extends Model
     }
 
     // --- 5. HELPER METHODS ---
-    
-    /**
-     * Get the raw image filename as stored in DB (bypasses accessor)
-     */
-    public function getRawImageAttribute(): ?string
-    {
-        return $this->attributes['image'] ?? null;
-    }
-
-    /**
-     * Get the directory path for this article's images
-     */
-    public function getImageDirectoryAttribute(): string
-    {
-        return "uploads/news/{$this->news_id}";
-    }
+    // Image path helpers are in App\Services\ImageService.
 }
