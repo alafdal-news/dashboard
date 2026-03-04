@@ -94,7 +94,7 @@ class CategoryController extends Controller
             $categoryIds = array_merge($categoryIds, $childIds);
         }
 
-        $articles = Article::with(['category', 'images'])
+        $articles = Article::with(['category', 'galleryImages'])
             ->whereIn('id_cat', $categoryIds)
             ->where('active', '1')
             ->orderBy('news_id', 'desc')

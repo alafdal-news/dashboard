@@ -14,7 +14,7 @@ class ArticleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Get cover image from images relationship or direct image field
+        // Cover image: always from articles table `image` column (single source of truth)
         $coverImage = $this->getCoverImage();
         
         return [
@@ -37,12 +37,11 @@ class ArticleResource extends JsonResource
             'category' => $this->whenLoaded('category', function () {
                 return new CategoryResource($this->category);
             }),
-            'images' => $this->whenLoaded('images', function () {
-                return $this->images->map(function ($image) {
+            'images' => $this->whenLoaded('galleryImages', function () {
+                return $this->galleryImages->map(function ($image) {
                     return [
                         'id' => $image->gallery_id,
                         'url' => $this->buildImageUrl($image->image_name),
-                        'is_cover' => (bool) $image->coverpage,
                     ];
                 });
             }),
@@ -69,28 +68,15 @@ class ArticleResource extends JsonResource
     }
 
     /**
-     * Get cover image URL
+     * Get cover image URL — single source of truth: articles table `image` column.
+     * Gallery images are never used as cover.
      */
     private function getCoverImage(): ?string
     {
-        // First check for image in news_gallery with coverpage = 1
-        if ($this->relationLoaded('images') && $this->images->count() > 0) {
-            $cover = $this->images->first(fn($img) => $img->coverpage == '1');
-            if ($cover) {
-                return $this->buildImageUrl($cover->image_name);
-            }
-            // Fallback to first image
-            $first = $this->images->first();
-            if ($first) {
-                return $this->buildImageUrl($first->image_name);
-            }
-        }
-        
-        // Fallback to direct image field
         if ($this->image) {
             return $this->buildImageUrl($this->image);
         }
-        
+
         // Default placeholder
         return '/uploads/news/p5.jpg';
     }

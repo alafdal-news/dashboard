@@ -27,7 +27,7 @@ class SearchController extends Controller
             ], 400);
         }
         
-        $articlesQuery = Article::with(['category', 'images'])
+        $articlesQuery = Article::with(['category', 'galleryImages'])
             ->where('active', '1')
             ->where(function ($q) use ($query) {
                 $q->where('news_title', 'LIKE', "%{$query}%")
