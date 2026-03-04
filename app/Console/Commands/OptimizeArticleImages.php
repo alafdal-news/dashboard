@@ -110,7 +110,7 @@ class OptimizeArticleImages extends Command
         $basePath = $disk->path($dir);
 
         // --- Process cover image ---
-        $rawImage = $article->getRawAttributes()['image'] ?? null;
+        $rawImage = $article->getAttributes()['image'] ?? null;
         if ($rawImage && !str_contains($rawImage, '/')) {
             $coverResult = $this->processImageFile($basePath, $rawImage, $dryRun, $maxWidth, $quality);
 
@@ -121,7 +121,7 @@ class OptimizeArticleImages extends Command
                     ->update(['image' => $coverResult['filename']]);
 
                 // If a thumbnail exists, convert that too
-                $rawThumb = $article->getRawAttributes()['thumbnail_image'] ?? null;
+                $rawThumb = $article->getAttributes()['thumbnail_image'] ?? null;
                 if ($rawThumb) {
                     $thumbDir = $basePath . DIRECTORY_SEPARATOR . 'thumb';
                     if (is_dir($thumbDir)) {
@@ -135,7 +135,7 @@ class OptimizeArticleImages extends Command
                 }
             } elseif ($coverResult && $dryRun) {
                 // Still process thumbnail in dry-run for accurate counts
-                $rawThumb = $article->getRawAttributes()['thumbnail_image'] ?? null;
+                $rawThumb = $article->getAttributes()['thumbnail_image'] ?? null;
                 if ($rawThumb) {
                     $thumbDir = $basePath . DIRECTORY_SEPARATOR . 'thumb';
                     if (is_dir($thumbDir)) {
