@@ -15,7 +15,9 @@ class OptimizeArticleImages extends Command
                             {--chunk=200 : Number of articles to process per batch}
                             {--max-width=1920 : Maximum image width in pixels}
                             {--quality=75 : WebP output quality (1-100)}
-                            {--active-only : Only process active articles}';
+                            {--active-only : Only process active articles}
+                            {--from-id=0 : Start from this news_id (skip all articles with lower IDs)}
+                            {--limit=0 : Maximum number of articles to process (0 = all)}';
 
     protected $description = 'Resize oversized images and convert JPEG/PNG to WebP across all article directories';
 
@@ -32,6 +34,8 @@ class OptimizeArticleImages extends Command
         $maxWidth = (int) $this->option('max-width');
         $quality = (int) $this->option('quality');
         $activeOnly = $this->option('active-only');
+        $fromId = (int) $this->option('from-id');
+        $limit = (int) $this->option('limit');
 
         // Verify GD supports WebP
         if (!function_exists('imagewebp')) {
@@ -44,22 +48,44 @@ class OptimizeArticleImages extends Command
         }
 
         $this->info("Settings: max-width={$maxWidth}px, quality={$quality}%, active-only=" . ($activeOnly ? 'yes' : 'no'));
+        if ($fromId > 0) {
+            $this->info("Resuming from news_id > {$fromId}");
+        }
+        if ($limit > 0) {
+            $this->info("Limiting to {$limit} articles.");
+        }
 
         $query = Article::query();
         if ($activeOnly) {
             $query->where('active', '1');
         }
+        if ($fromId > 0) {
+            $query->where('news_id', '>', $fromId);
+        }
 
         $total = $query->count();
-        $this->info("Processing images for {$total} articles...");
+        $toProcess = ($limit > 0) ? min($limit, $total) : $total;
+        $this->info("Processing images for {$toProcess} articles" . ($fromId > 0 ? " (of {$total} remaining)" : '') . '...');
 
-        $bar = $this->output->createProgressBar($total);
+        $bar = $this->output->createProgressBar($toProcess);
         $bar->start();
 
-        $query->chunkById($chunkSize, function ($articles) use ($dryRun, $maxWidth, $quality, $bar) {
+        $processed = 0;
+        $lastId = $fromId;
+
+        $query->chunkById($chunkSize, function ($articles) use ($dryRun, $maxWidth, $quality, $bar, $limit, &$processed, &$lastId) {
             foreach ($articles as $article) {
+                if ($limit > 0 && $processed >= $limit) {
+                    return false; // Stop chunking
+                }
                 $this->processArticle($article, $dryRun, $maxWidth, $quality);
+                $lastId = $article->news_id;
+                $processed++;
                 $bar->advance();
+            }
+
+            if ($limit > 0 && $processed >= $limit) {
+                return false; // Stop chunking
             }
         }, 'news_id');
 
@@ -76,6 +102,7 @@ class OptimizeArticleImages extends Command
                 ['Images skipped (already WebP)', $this->imagesSkipped],
                 ['Space saved', "{$savedMB} MB"],
                 ['Errors', $this->errors],
+                ['Last processed news_id', $lastId],
             ]
         );
 
@@ -85,6 +112,13 @@ class OptimizeArticleImages extends Command
             $this->info('Optimization complete.');
         }
 
+        // Show resume command if there are more articles to process
+        if ($limit > 0 && $processed >= $limit) {
+            $this->newLine();
+            $this->info("To continue from where you left off, run:");
+            $this->comment("  php artisan articles:optimize-images --from-id={$lastId} --limit={$limit}");
+        }
+
         Log::info('[OptimizeArticleImages] Finished', [
             'dry_run' => $dryRun,
             'converted' => $this->imagesConverted,
@@ -92,6 +126,7 @@ class OptimizeArticleImages extends Command
             'skipped' => $this->imagesSkipped,
             'bytes_saved' => $this->bytesSaved,
             'errors' => $this->errors,
+            'last_news_id' => $lastId,
         ]);
 
         return self::SUCCESS;
